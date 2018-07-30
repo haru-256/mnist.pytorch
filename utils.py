@@ -140,7 +140,8 @@ def visualize(epoch, gen, nrow=7, ncol=7, log_dir=None, device=None):
         samples = gen(z).cpu()
     np.random.seed()
 
-    images = torchvision.utils.make_grid(samples, normalize=True)
+    images = torchvision.utils.make_grid(samples, normalize=True, nrow=nrow)
     plt.imshow(images.numpy().transpose(1, 2, 0), cmap=plt.cm.gray)
+    plt.axis("off")
     plt.title("Epoch: {}".format(epoch))
     plt.savefig(log_dir / "epoch{}.png".format(epoch))
