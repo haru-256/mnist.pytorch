@@ -14,6 +14,14 @@ import numpy as np
 
 
 def weights_init(m):
+    """
+    Initialize
+
+    Parameters
+    ----------------------
+    m: torch.nn.Module
+        Module that means layer.
+    """
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:  # Conv系全てに対しての初期化
         m.weight.data.normal_(0.0, 0.02)
@@ -24,6 +32,31 @@ def weights_init(m):
 
 def standard_gan_train(models, datasets, optimizers, num_epochs=30, batch_size=128,
                        device=None, scheduler=None, out=None):
+    """
+    train gan(generator, discriminator) with standard gan algorithm
+
+    Parameters
+    -----------------
+    models: dict
+        dictionary that contains generator, discriminator
+
+    datasets: torch.utils.data.Dataset
+        dataset of image
+
+    optimizer: dict
+        dictionary that contains torch.optim.Optimizer for generator or discriminator
+
+    num_epochs: int
+        number of epochs
+
+    batch_size: int
+        number of batch size
+
+    device: torch.device
+
+    out: pathlib.Path
+        represent output directory
+    """
     since = datetime.datetime.now()
     epochs = tqdm(range(num_epochs), desc="Epoch", unit='epoch')
     # construct dataloader
@@ -76,6 +109,30 @@ def standard_gan_train(models, datasets, optimizers, num_epochs=30, batch_size=1
 
 
 def train_dis(models, dis_optim, data, labels, criterion):
+    """
+    train discriminator by a iteration
+
+    Parameters
+    ---------------
+    models: dict
+        dictionary that contains generator, discriminator
+
+    dis_optim: torch.optim.Optimizer
+        optimizer for discriminator
+
+    data: torch.Tensor
+        batch data
+
+    labels: dict
+        dictionary that contains label data coresponding to real or fake
+
+    criterion: torch.BCELoss()
+
+    Return
+    --------------
+    dis_loss: torch.Tensor
+        discriminator loss
+    """
     gen, dis = models['generator'], models['discriminator']
 
     # train disctiminator
@@ -101,6 +158,27 @@ def train_dis(models, dis_optim, data, labels, criterion):
 
 
 def train_gen(models, gen_optim, fake_labels, criterion):
+    """
+    train generator by a iteration
+
+    Parameters
+    ---------------
+    models: dict
+        dictionary that contains generator, discriminator
+
+    gen_optim: torch.optim.Optimizer
+        optimizer for generator
+
+    fake_labels: torch.Tensor
+        label coresponding to fake image
+
+    criterion: torch.BCELoss()
+
+    Return
+    --------------
+    gen_loss: torch.Tensor
+        generator loss
+    """
     gen, dis = models['generator'], models['discriminator']
     # train generator
     gen.train()
@@ -122,6 +200,26 @@ def train_gen(models, gen_optim, fake_labels, criterion):
 
 
 def visualize(epoch, gen, nrow=7, ncol=7, log_dir=None, device=None):
+    """
+    visualize generator images
+
+    Parmameters
+    -------------------
+    epoch: int
+        number of epochs
+
+    gen: torch.nn.Module
+        generator model
+
+    nrow: int
+
+    ncol: int
+
+    log_dir: pathlib.Path
+        path to output directory
+
+    device: torch.device
+    """
     gen.eval()
     pre = pathlib.Path(log_dir.parts[0])
     for i, path in enumerate(log_dir.parts):

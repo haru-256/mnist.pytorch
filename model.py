@@ -57,8 +57,15 @@ class Generator(nn.Module):
         """
         Function that makes z random vector in accordance with the uniform(-1, 1)
 
+        Parameters
+        -------------------------------
         batchsize: int
            batchsize indicate len(z)
+
+        Return
+        -------------------------------
+        z: torch.Tensor
+            noise whose shape is (batchsize, self.n_hidden=100)
         """
         z = np.random.uniform(low=-1.0, high=1.0,
                               size=(batchsize, self.n_hidden)).astype(np.float32)
@@ -83,9 +90,6 @@ class Discriminator(nn.Module):
     in_ch: int
        Channel when converting the output of the first layer
        to the 4-dimensional tensor
-
-    wscale: float
-        std of normal initializer
     """
 
     def __init__(self, in_ch=1):
