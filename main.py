@@ -46,7 +46,7 @@ if __name__ == "__main__":
     epoch = args.epoch
     seed = args.seed
     number = args.number  # number of experiments
-    out = "result_{0}/result_{0}_{1}".format(number, seed)
+    out = pathlib.Path("result_{0}/result_{0}_{1}".format(number, seed))
 
     print('GPU: {}'.format(gpu))
     print('# Minibatch-size: {}'.format(batch_size))
@@ -72,12 +72,8 @@ if __name__ == "__main__":
     datasets = datasets.MNIST(root=data_dir, train=True,
                               download=True, transform=transform)
     # build model
-    generator = Generator()
-    discriminator = Discriminator()
-
-    # initialize parameters pf model
-    generator.apply(weights_init)
-    discriminator.apply(weights_init)
+    generator = Generator().to(device)
+    discriminator = Discriminator().to(device)
 
     # Setup an optimizer
     def make_optimizer(model, lr=0.0002, beta1=0.5):
@@ -85,7 +81,10 @@ if __name__ == "__main__":
                                lr=lr, betas=(beta1, 0.999))
 
         return optimizer
-
+    # initialize parameters pf model
+    generator.apply(weights_init)
+    discriminator.apply(weights_init)
+    # make optimizer
     gen_optimizer = make_optimizer(generator)
     dis_optimizer = make_optimizer(discriminator)
 
@@ -94,5 +93,5 @@ if __name__ == "__main__":
                        optimizers={
         'generator': gen_optimizer,
         'discriminator': dis_optimizer},
-        datasets=datasets, device=device, num_epochs=epoch
+        datasets=datasets, device=device, num_epochs=epoch, out=out
     )

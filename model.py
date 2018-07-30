@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributions as distributions
+import numpy as np
 
 
 class Generator(nn.Module):
@@ -35,13 +36,13 @@ class Generator(nn.Module):
         self.l0 = nn.Linear(in_features=self.n_hidden,
                             out_features=self.bottom_width*self.bottom_width*self.in_ch,
                             bias=False)
-        self.dc1 = nn.ConvTranspose2d(in_channels=None,
+        self.dc1 = nn.ConvTranspose2d(in_channels=self.in_ch,
                                       out_channels=self.in_ch//2,
                                       kernel_size=4,
                                       stride=2,
                                       padding=1,
                                       bias=False)  # (N, 3, 14, 14)
-        self.dc2 = nn.ConvTranspose2d(in_channels=None,
+        self.dc2 = nn.ConvTranspose2d(in_channels=self.in_ch//2,
                                       out_channels=1,
                                       kernel_size=4,
                                       stride=2,
@@ -50,7 +51,7 @@ class Generator(nn.Module):
 
         self.bn0 = nn.BatchNorm1d(
             num_features=self.bottom_width*self.bottom_width*self.in_ch)
-        self.bn1 = nn.BatchNorm2d(num_features=self.in_ch)
+        self.bn1 = nn.BatchNorm2d(num_features=self.in_ch//2)
 
     def make_hidden(self, batchsize):
         """
@@ -59,8 +60,9 @@ class Generator(nn.Module):
         batchsize: int
            batchsize indicate len(z)
         """
-        return self.uniform.sample(
-            sample_shape=torch.Size([batchsize, self.n_hidden]))
+        z = np.random.uniform(low=-1.0, high=1.0,
+                              size=(batchsize, self.n_hidden)).astype(np.float32)
+        return torch.from_numpy(z)
 
     def forward(self, x):
         x = F.relu(self.bn0(self.l0(x)), inplace=True)
@@ -98,26 +100,26 @@ class Discriminator(nn.Module):
             padding=1
         )  # (N, 64, 14, 14)
         self.c1 = nn.Conv2d(
-            in_channels=in_ch,
+            in_channels=64,
             out_channels=128,
             kernel_size=4,
             stride=2,
             padding=1,
             bias=False
         )  # (N, 128, 7, 7)
-        self.l2 = nn.Linear(in_features=None, out_features=1)
+        self.l2 = nn.Linear(in_features=128*7*7, out_features=1)
 
-        self.bn1 = nn.BatchNorm2d(num_features=128*7*7)
+        self.bn1 = nn.BatchNorm2d(num_features=128)
 
     def forward(self, x):
         x = F.leaky_relu(self.c0(x),
                          negative_slope=0.2, inplace=True)
-        x = self.bn1(self.c1(x))
-        x = F.leaky_relu(x.view(-1, self.num_flat_features(x)),
+        x = F.leaky_relu(self.bn1(self.c1(x)),
                          negative_slope=0.2, inplace=True)
-        logits = self.l2(x)
+        x = x.view(-1, self.num_flat_features(x))
+        y = F.sigmoid(self.l2(x))
 
-        return logits
+        return torch.squeeze(y)
 
     def num_flat_features(self, x):
         size = x.size()[1:]  # all dimensions except the batch dimension
