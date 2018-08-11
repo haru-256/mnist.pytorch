@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets
 from torchvision import transforms
+from torchsummary import summary
 import argparse
 import pathlib
 import numpy as np
@@ -74,6 +75,11 @@ if __name__ == "__main__":
     # build model
     generator = Generator().to(device)
     discriminator = Discriminator().to(device)
+
+    print("Generator", end="\n\n")
+    summary(generator, input_size=(100, 1, 1))
+    print("Discriminator", end="\n\n")
+    summary(generator, input_size=(1, 28, 28))
 
     # Setup an optimizer
     def make_optimizer(model, lr=0.0002, beta1=0.5):

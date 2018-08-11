@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributions as distributions
+from torchsummary import summary
 import numpy as np
 
 
@@ -75,7 +76,7 @@ class Generator(nn.Module):
         x = F.relu(self.bn0(self.l0(x)), inplace=True)
         x = x.view(-1, self.in_ch, self.bottom_width, self.bottom_width)
         x = F.relu(self.bn1(self.dc1(x)), inplace=True)
-        x = F.tanh(self.dc2(x))
+        x = torch.tanh(self.dc2(x))
 
         return x
 
@@ -121,7 +122,7 @@ class Discriminator(nn.Module):
         x = F.leaky_relu(self.bn1(self.c1(x)),
                          negative_slope=0.2, inplace=True)
         x = x.view(-1, self.num_flat_features(x))
-        y = F.sigmoid(self.l2(x))
+        y = torch.sigmoid(self.l2(x))
 
         return torch.squeeze(y)
 
@@ -131,3 +132,16 @@ class Discriminator(nn.Module):
         for s in size:
             num_features *= s
         return num_features
+
+
+if __name__ == "__main__":
+    device = torch.device("cuda" if torch.cuda.is_available()
+                          else "cpu")  # PyTorch v0.4.0
+    # build model
+    generator = Generator().to(device)
+    discriminator = Discriminator().to(device)
+
+    print("Generator", end="\n\n")
+    summary(generator, input_size=(100, ))
+    print("Discriminator", end="\n\n")
+    summary(discriminator, input_size=(1, 28, 28))
