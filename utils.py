@@ -1,3 +1,4 @@
+import pathlib
 from tqdm import tqdm
 import datetime
 import torch
@@ -5,7 +6,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 import copy
-import pathlib
 import torchvision
 # import matplotlib as mpl
 # mpl.use("Agg")
