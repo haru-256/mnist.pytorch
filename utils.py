@@ -75,6 +75,8 @@ def standard_gan_train(models, datasets, optimizers, num_epochs=30, batch_size=1
         epoch_gen_loss = 0.0
         for inputs, _ in iteration:
             inputs = inputs.to(device)
+            assert ((inputs > -1) * (inputs < 1)
+                    ).all(), "input data to discriminator range is not from -1 to 1"
             real_labels = torch.ones(
                 inputs.size()[0], device=device)
             fake_labels = torch.zeros(
